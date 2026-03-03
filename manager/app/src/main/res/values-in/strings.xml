@@ -71,6 +71,8 @@
     <string name="module_update">Perbarui</string>
     <string name="module_downloading">Mengunduh modul: %s</string>
     <string name="module_start_downloading">Mulai mengunduh: %s</string>
+    <string name="start_downloading">Mulai mengunduh</string>
+    <string name="download_failed">Gagal mengunduh: %s</string>
     <string name="new_version_available">Versi baru %s tersedia, klik untuk memperbarui!</string>
     <string name="launch_app">Luncurkan</string>
     <string name="force_stop_app">Paksa berhenti</string>
@@ -139,7 +141,7 @@
     <string name="settings_kernel_umount">Unmount modul (tingkat kernel)</string>
     <string name="settings_kernel_umount_summary">Unmount modul dari kernel pada Profil Aplikasi.</string>
     <string name="settings_avc_spoof">Spoof Log AVC</string>
-    <string name="settings_avc_spoof_summary">Memperbaiki kebocoran konteks SELinux akibat penolakan AVC yang tercatat di log audit.</string>
+    <string name="settings_avc_spoof_summary">Memperbaiki kebocoran konteks SELinux akibat penolakan AVC yang tercatat di log audit</string>
     <string name="processing">Memproses…</string>
     <string name="refresh_pulling">Tarik ke bawah untuk menyegarkan</string>
     <string name="refresh_release">Lepas untuk menyegarkan</string>
@@ -169,10 +171,10 @@
     <string name="settings_key_color">Warna utama</string>
     <string name="settings_key_color_summary">Sesuaikan aksen saat menggunakan Monet.</string>
     <string name="settings_key_color_default">Default</string>
-    <string name="settings_color_spec">Spesifikasi Warna</string>
-    <string name="settings_color_style">Gaya Warna</string>
-    <string name="settings_classic_home_ui">Tampilan Beranda Klasik</string>
-    <string name="settings_switch_icon">Tombol Ikon</string>
+    <string name="settings_color_spec">Warna spesifik</string>
+    <string name="settings_color_style">Gaya warna</string>
+    <string name="settings_classic_home_ui">Tampilan beranda klasik</string>
+    <string name="settings_switch_icon">Beralih ikon tombol</string>
     <string name="color_blue">Biru</string>
     <string name="color_red">Merah</string>
     <string name="color_green">Hijau</string>
@@ -192,9 +194,9 @@
     <string name="settings_mode_disable_until_reboot">Nonaktif hingga Reboot</string>
     <string name="settings_mode_disable_always">Selalu nonaktif</string>
     <string name="settings_kernelsu_toolkit">KernelSU Toolkit</string>
-    <string name="settings_kernelsu_toolkit_summary">Alat bantu untuk fitur tambahan KernelSU.</string>
-    <string name="settings_kpatch_next">KPatch-Next</string>
-    <string name="settings_kpatch_nextt_summary">Implementasi mandiri dukungan KPM.</string>
+    <string name="settings_kernelsu_toolkit_summary">Alat bantu untuk fitur tambahan KernelSU</string>
+    <string name="settings_kpatch_next">KPatch Next</string>
+    <string name="settings_kpatch_nextt_summary">Implementasi mandiri dukungan KPM</string>
     <string name="module_shortcut_title">Buat pintasan</string>
     <string name="module_shortcut_name_label">Nama pintasan</string>
     <string name="module_shortcut_icon_pick">Pilih ikon khusus</string>
