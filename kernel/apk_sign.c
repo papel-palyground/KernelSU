@@ -293,7 +293,8 @@ static int set_expected_size(const char *val, const struct kernel_param *kp)
 {
     int rv = param_set_uint(val, kp);
     ksu_set_manager_appid(ksu_debug_manager_appid);
-    pr_info("ksu_manager_appid set to %d\n", ksu_debug_manager_appid);
+    pr_info("ksu_manager_appid added: %d (count=%d)\n",
+            ksu_debug_manager_appid, ksu_manager_count);
     return rv;
 }
 
@@ -346,19 +347,47 @@ int get_pkg_from_apk_path(char *pkg, const char *path)
     return 0;
 }
 
+/*
+ * All allowed manager signing certificates.
+ * A matching entry means the APK is a legitimate KernelSU manager.
+ * Add or remove entries here to extend / restrict the manager allowlist.
+ */
+static const apk_sign_key_t ksu_manager_keys[] = {
+    { EXPECTED_SIZE_KOWX712,   EXPECTED_HASH_KOWX712   }, /* KOWX712/KernelSU      */
+    { EXPECTED_SIZE_RSUNTK,    EXPECTED_HASH_RSUNTK    }, /* rsuntk/KernelSU       */
+    { EXPECTED_SIZE_5EC1CFF,   EXPECTED_HASH_5EC1CFF   }, /* 5ec1cff/KernelSU      */
+    { EXPECTED_SIZE_OFFICIAL,  EXPECTED_HASH_OFFICIAL  }, /* tiann/KernelSU        */
+    { EXPECTED_SIZE_NEXT,      EXPECTED_HASH_NEXT      }, /* KernelSU-Next         */
+    { EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO }, /* ShirkNeko/SukiSU      */
+    { EXPECTED_SIZE_NEKO,      EXPECTED_HASH_NEKO      }, /* Neko/KernelSU         */
+    { EXPECTED_SIZE_RESUKISU,  EXPECTED_HASH_RESUKISU  }, /* ReSukiSU              */
+    { EXPECTED_SIZE_WILD,      EXPECTED_HASH_WILD      }, /* KernelSU-WILD         */
+    { EXPECTED_SIZE_MAMBO,     EXPECTED_HASH_MAMBO     }, /* RapliVx/MamboSU       */
+};
+
 bool is_manager_apk(char *path)
 {
+    int i;
+
 #ifdef KSU_MANAGER_PACKAGE
+    /*
+     * Optional compile-time package-name filter: when KSU_MANAGER_PACKAGE
+     * is set only APKs whose package name matches are even signature-checked.
+     */
     char pkg[KSU_MAX_PACKAGE_NAME];
     if (get_pkg_from_apk_path(pkg, path) < 0) {
         pr_err("Failed to get package name from apk path: %s\n", path);
         return false;
     }
-
-    // pkg is `<real package>`
-    if (strncmp(pkg, KSU_MANAGER_PACKAGE, sizeof(KSU_MANAGER_PACKAGE))) {
+    if (strncmp(pkg, KSU_MANAGER_PACKAGE, sizeof(KSU_MANAGER_PACKAGE)) != 0)
         return false;
-    }
 #endif
-    return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
+
+    for (i = 0; i < ARRAY_SIZE(ksu_manager_keys); i++) {
+        if (check_v2_signature(path,
+                               ksu_manager_keys[i].size,
+                               ksu_manager_keys[i].sha256))
+            return true;
+    }
+    return false;
 }

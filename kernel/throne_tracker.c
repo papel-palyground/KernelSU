@@ -12,7 +12,8 @@
 #include "manager.h"
 #include "throne_tracker.h"
 
-uid_t ksu_manager_appid = KSU_INVALID_APPID;
+uid_t ksu_manager_appids[KSU_MAX_MANAGERS];
+int   ksu_manager_count = 0;
 
 #define SYSTEM_PACKAGES_LIST_PATH "/data/system/packages.list"
 
@@ -38,7 +39,7 @@ static void crown_manager(const char *apk, struct list_head *uid_data)
     list_for_each_entry (np, list, list) {
         if (strncmp(np->package, pkg, KSU_MAX_PACKAGE_NAME) == 0) {
             pr_info("Crowning manager: %s(uid=%d)\n", pkg, np->uid);
-            ksu_set_manager_appid(np->uid);
+            ksu_add_manager_appid(np->uid);
             break;
         }
     }
@@ -140,13 +141,10 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
                     is_manager);
             if (is_manager) {
                 crown_manager(dirpath, my_ctx->private_data);
-                *my_ctx->stop = 1;
-
-                // Manager found, clear APK cache list
-                list_for_each_entry_safe (pos, n, &apk_path_hash_list, list) {
-                    list_del(&pos->list);
-                    kfree(pos);
-                }
+                /*
+                 * Multi-manager: do NOT stop scanning here so that all
+                 * installed manager APKs can be discovered in one pass.
+                 */
             } else {
                 struct apk_path_hash *apk_data =
                     kzalloc(sizeof(struct apk_path_hash), GFP_ATOMIC);
@@ -316,24 +314,36 @@ void track_throne(bool prune_only)
     if (prune_only)
         goto prune;
 
-    // first, check if manager_uid exist!
-    bool manager_exist = false;
-    list_for_each_entry (np, &uid_list, list) {
-        if (np->uid == ksu_get_manager_appid()) {
-            manager_exist = true;
-            break;
+    /*
+     * Multi-manager: prune any manager whose uid is no longer in the
+     * installed package list (= was uninstalled).  Then scan for new
+     * managers only when none remain.
+     */
+    {
+        int i;
+        for (i = 0; i < ksu_manager_count; ) {
+            bool found = false;
+            list_for_each_entry (np, &uid_list, list) {
+                if (np->uid == ksu_manager_appids[i]) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                pr_info("manager uid=%u uninstalled, removing\n",
+                        ksu_manager_appids[i]);
+                ksu_remove_manager_appid(ksu_manager_appids[i]);
+                /* don't advance i – swap-remove shifted a new uid to [i] */
+            } else {
+                i++;
+            }
         }
     }
 
-    if (!manager_exist) {
-        if (ksu_is_manager_appid_valid()) {
-            pr_info("manager is uninstalled, invalidate it!\n");
-            ksu_invalidate_manager_uid();
-            goto prune;
-        }
-        pr_info("Searching manager...\n");
+    if (ksu_manager_count == 0) {
+        pr_info("No registered managers, searching...\n");
         search_manager("/data/app", 2, &uid_list);
-        pr_info("Search manager finished\n");
+        pr_info("Search finished, manager count: %d\n", ksu_manager_count);
     }
 
 prune:
